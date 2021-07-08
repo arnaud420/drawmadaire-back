@@ -1,0 +1,51 @@
+image: node:12
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - dist/
+
+stages:
+  - build
+  - test
+  - lint
+  - deploy
+
+build:
+  stage: build
+  only:
+    - master
+    - develop
+  script:
+    - npm install
+    - npm run build
+
+test:
+  stage: test
+  only:
+    - master
+    - develop
+  script:
+    - npm run test
+
+lint:
+  stage: lint
+  only:
+    - master
+    - develop
+  script:
+    - npm run lint
+
+deploy:
+  image: ruby:latest
+  # Protected branches only.
+  only:
+    - master
+    - feature/ci-cd
+  stage: deploy
+  script:
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - dpl --provider=heroku --app=$HEROKU_APP_NAME --api-key=$HEROKU_API_KEY
